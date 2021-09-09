@@ -1,0 +1,11 @@
+POST https://localhost:4001/companies
+content-type: application/json
+
+{
+    "name": "asdf123",
+    "address": "test",
+    "country": "AUT"
+}
+
+###
+GET https://localhost:4001/companies
