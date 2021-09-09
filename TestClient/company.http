@@ -1,11 +1,32 @@
+PUT https://localhost:4001/companies/2
+content-type: application/json
+
+{
+    "name": "UpdatedCompany",
+    "address": "Testaddress",
+    "country": "AUT"
+}
+
+###
 POST https://localhost:4001/companies
 content-type: application/json
 
 {
-    "name": "asdf123",
-    "address": "test",
+    "name": "CreatedCompany",
+    "address": "Testaddress 1",
     "country": "AUT"
 }
 
 ###
 GET https://localhost:4001/companies
+
+###
+GET https://localhost:4001/companies/employee/1
+
+
+###
+GET https://localhost:4001/companies/2/multipleresult
+
+
+###
+GET https://localhost:4001/companies/multiplemapping

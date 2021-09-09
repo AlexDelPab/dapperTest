@@ -48,5 +48,79 @@ namespace dapperTest {
                 return createdCompany;
             }
         }
+
+        public async Task UpdateCompany (int id, UpdateCompanyDto company) {
+            var query = "UPDATE Companies SET Name = @Name, Address = @Address, Country = @Country WHERE Id = @Id";
+            var parameters = new DynamicParameters ();
+            parameters.Add ("Id", id, DbType.Int32);
+            parameters.Add ("Name", company.Name, DbType.String);
+            parameters.Add ("Address", company.Address, DbType.String);
+            parameters.Add ("Country", company.Country, DbType.String);
+            using (var connection = _context.CreateConnection ()) {
+                await connection.ExecuteAsync (query, parameters);
+            }
+        }
+
+        public async Task DeleteCompany (int id) {
+            var query = "DELETE FROM Companies WHERE Id = @Id";
+            using (var connection = _context.CreateConnection ()) {
+                await connection.ExecuteAsync (query, new { id });
+            }
+        }
+
+        /**
+         * Get company by employeeId with a storedProcedure
+         * Precondition: Create stored procedure in db (see file _createStoredProcedure.sql)
+         */
+        public async Task<Company> GetCompanyByEmployeeId (int employeeId) {
+            var procedureName = "GetCompanyByEmployeeId";
+            var parameters = new DynamicParameters ();
+            parameters.Add ("Id", employeeId, DbType.Int32, ParameterDirection.Input);
+            using (var connection = _context.CreateConnection ()) {
+                var company = await connection.QueryFirstOrDefaultAsync<Company>
+                    (procedureName, parameters, commandType : CommandType.StoredProcedure);
+                return company;
+            }
+        }
+
+        /**
+         * Get employee and companies by running two queries
+         */
+        public async Task<Company> GetCompanyEmployeesMultipleResults (int id) {
+            var query = "SELECT * FROM Companies WHERE Id = @Id;" +
+                "SELECT * FROM Employees WHERE CompanyId = @Id";
+            using (var connection = _context.CreateConnection ())
+            using (var multi = await connection.QueryMultipleAsync (query, new { id })) {
+                var company = await multi.ReadSingleOrDefaultAsync<Company> ();
+                if (company != null)
+                    company.Employees = (await multi.ReadAsync<Employee> ()).ToList ();
+                return company;
+            }
+        }
+
+        /**
+         * Join employee to companies in one query and map it accordingly
+         */
+        public async Task<List<Company>> GetCompaniesEmployeesMultipleMapping () {
+            var query = "SELECT * FROM Companies c JOIN Employees e ON c.Id = e.CompanyId";
+
+            using (var connection = _context.CreateConnection ()) {
+                var companyDict = new Dictionary<int, Company> ();
+
+                var companies = await connection.QueryAsync<Company, Employee, Company> (
+                        query, (company, employee) => {
+                            if (!companyDict.TryGetValue (company.Id, out var currentCompany)) {
+                                currentCompany = company;
+                                companyDict.Add (currentCompany.Id, currentCompany);
+                            }
+
+                            currentCompany.Employees.Add (employee);
+                            return currentCompany;
+                        }
+                    );
+
+                return companies.Distinct ().ToList ();
+            }
+        }
     }
 }
