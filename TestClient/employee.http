@@ -1,0 +1,9 @@
+###
+GET https://localhost:4001/employees/1
+
+###
+GET https://localhost:4001/employees/1/raw
+
+
+###
+GET https://localhost:4001/employees

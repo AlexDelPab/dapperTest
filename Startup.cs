@@ -24,6 +24,7 @@ namespace dapperTest {
         public void ConfigureServices (IServiceCollection services) {
             services.AddSingleton<DapperContext> ();
             services.AddScoped<ICompanyRepository, CompanyRepository>();
+            services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             services.AddControllers ();
             services.AddSwaggerGen (c => {
                 c.SwaggerDoc ("v1", new OpenApiInfo { Title = "dapperTest", Version = "v1" });
